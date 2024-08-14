@@ -38,6 +38,25 @@ mux.HandleFunc("GET /snippet/view/{id}", snippetView)
 err := http.ListenAndServe("0.0.0.0:4000", mux)
 log.Fatal(err)
 ~~~
+Для логування використовується log/slog, що дає можливість використовувати різні рівні логування. При цьому використано Dependency injection, що дозволяє використовувати логер в кількох модулях. Для цього в модулі main створено структуру
+~~~go
+type application struct {
+	logger *slog.Logger
+}
+~~~
+Створено екземпляр цієї структури та проведено її ініціалізацію
+~~~go
+app := &application{
+		logger: logger,
+}
+~~~
+Далі функції-хендлери прив'язуються до відповідної структури
+~~~go
+func (app *application) home(w http.ResponseWriter, r *http.Request){
+	//...
+}
+~~~
+
 
 ## Структура проекту
 Проекти містить 3 директорії:
