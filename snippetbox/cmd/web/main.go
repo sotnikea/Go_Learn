@@ -1,32 +1,55 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log/slog"
 	"net/http"
 	"os"
+
+	// Import the models package that we just created
+	"github.com/sotnikea/Go_Learn/tree/main/snippetbox/internal/models"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Define an application struct to hold the application-wide dependencies for the
-// web application. For now we'll only include the structured logger, but we'll
-// add more to this as the build progresses.
+// web application
 type application struct {
-	logger *slog.Logger
+	logger   *slog.Logger
+	snippets *models.SnippetModel
 }
 
 func main() {
 	// Define a new command-line flag with the name 'addr', a default value of ":4000"
 	addr := flag.String("addr", "0.0.0.0:4000", "HTTP network address")
+	uri := flag.String("uri", "mongodb://web:111@localhost:27017/snippetbox", "Mongo database uri")
 	flag.Parse()
 
 	// Use the slog.New() function to initialize a new structured logger, which
 	// writes to the standard out stream and uses the default settings.
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
+	client, err := openDB(*uri)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	// We also defer a call to db.Close(), so that the connection pool is closed
+	// before the main() function exits.
+	defer client.Disconnect(context.TODO())
+
+	// get access to db and collection
+	// db := client.Database("snippetbox")
+	// collection := db.Collection("snippets")
+
 	// Initialize a new instance of our application struct, containing the
 	// dependencies (for now, just the structured logger).
 	app := &application{
-		logger: logger,
+		logger:   logger,
+		snippets: &models.SnippetModel{DB: client},
 	}
 
 	// Use the Info() method to log the starting server message at Info severity
@@ -38,11 +61,27 @@ func main() {
 	// and the servemux we just created. If http.ListenAndServe() returns an error
 	// we use the log.Fatal() function to log the error message and exit. Note
 	// that any error returned by http.ListenAndServe() is always non-nil.
-	err := http.ListenAndServe(*addr, app.routes())
+	err = http.ListenAndServe(*addr, app.routes())
 
 	// And we also use the Error() method to log any error message returned by
 	// http.ListenAndServe() at Error severity (with no additional attributes),
 	// and then call os.Exit(1) to terminate the application with exit code 1.
 	logger.Error(err.Error())
 	os.Exit(1)
+}
+
+func openDB(uri string) (*mongo.Client, error) {
+	clientOptions := options.Client().ApplyURI(uri)
+
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
