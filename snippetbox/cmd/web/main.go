@@ -7,19 +7,24 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/sotnikea/Go_Learn/tree/main/snippetbox/internal/models"
 
+	"github.com/alexedwards/scs/mongodbstore"
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form/v4"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Define an application struct to hold the application-wide dependencies for the
-// web application
+// Define an application struct to hold the application-wide dependencies
 type application struct {
-	logger        *slog.Logger
-	snippets      *models.SnippetModel
-	templateCache map[string]*template.Template
+	logger         *slog.Logger
+	snippets       *models.SnippetModel
+	templateCache  map[string]*template.Template
+	formDecoder    *form.Decoder
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -49,12 +54,25 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize a decoder instance...
+	formDecoder := form.NewDecoder()
+
+	// Use the scs.New() function to initialize a new session manager. Then we
+	// configure it to use our MySQL database as the session store, and set a
+	// lifetime of 12 hours (so that sessions automatically expire 12 hours
+	// after first being created).
+	sessionManager := scs.New()
+	sessionManager.Store = mongodbstore.New(client.Database("snippetbox"))
+	sessionManager.Lifetime = 12 * time.Hour
+
 	// Initialize a new instance of our application struct, containing the
 	// dependencies
 	app := &application{
-		logger:        logger,
-		snippets:      &models.SnippetModel{DB: client},
-		templateCache: templateCache,
+		logger:         logger,
+		snippets:       &models.SnippetModel{DB: client},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
 	}
 
 	// Use the Info() method to log the starting server message at Info severity
