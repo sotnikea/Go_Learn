@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"flag"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
 
-	// Import the models package that we just created
 	"github.com/sotnikea/Go_Learn/tree/main/snippetbox/internal/models"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -17,8 +17,9 @@ import (
 // Define an application struct to hold the application-wide dependencies for the
 // web application
 type application struct {
-	logger   *slog.Logger
-	snippets *models.SnippetModel
+	logger        *slog.Logger
+	snippets      *models.SnippetModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
@@ -41,15 +42,19 @@ func main() {
 	// before the main() function exits.
 	defer client.Disconnect(context.TODO())
 
-	// get access to db and collection
-	// db := client.Database("snippetbox")
-	// collection := db.Collection("snippets")
+	// Initialize a new template cache...
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
 
 	// Initialize a new instance of our application struct, containing the
-	// dependencies (for now, just the structured logger).
+	// dependencies
 	app := &application{
-		logger:   logger,
-		snippets: &models.SnippetModel{DB: client},
+		logger:        logger,
+		snippets:      &models.SnippetModel{DB: client},
+		templateCache: templateCache,
 	}
 
 	// Use the Info() method to log the starting server message at Info severity

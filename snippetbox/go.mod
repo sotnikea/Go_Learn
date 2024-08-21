@@ -2,7 +2,10 @@ module github.com/sotnikea/Go_Learn/tree/main/snippetbox
 
 go 1.22.6
 
-require go.mongodb.org/mongo-driver v1.16.1
+require (
+	github.com/justinas/alice v1.2.0
+	go.mongodb.org/mongo-driver v1.16.1
+)
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect
