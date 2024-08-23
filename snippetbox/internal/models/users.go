@@ -75,8 +75,38 @@ func (m *UserModel) Insert(name, email, password string) error {
 // We'll use the Authenticate method to verify whether a user exists with
 // the provided email address and password. This will return the relevant
 // user ID if they do.
-func (m *UserModel) Authenticate(email, password string) (string, error) {
-	return "", nil
+func (m *UserModel) Authenticate(email, password string) (interface{}, error) {
+	// Retrieve the id and hashed password associated with the given email. If
+	// no matching email exists we return the ErrInvalidCredentials error.
+	var result struct {
+		ID             interface{} `bson:"_id"`
+		HashedPassword []byte      `bson:"hashed_password"`
+	}
+
+	// Create request for searching document
+	filter := bson.D{{Key: "email", Value: email}}
+
+	// Execute request for the collection and find one document
+	err := m.DB.Database("snippetbox").Collection("users").FindOne(context.Background(), filter).Decode(&result)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return 0, ErrInvalidCredentials
+		}
+		return 0, err
+	}
+
+	// Check whether the hashed password and plain-text password provided match.
+	// If they don't, we return the ErrInvalidCredentials error.
+	err = bcrypt.CompareHashAndPassword(result.HashedPassword, []byte(password))
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return 0, ErrInvalidCredentials
+		}
+		return 0, err
+	}
+
+	// Otherwise, the password is correct. Return the user ID.
+	return result.ID, nil
 }
 
 // We'll use the Exists method to check if a user exists with a specific ID.
