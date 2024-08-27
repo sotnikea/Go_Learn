@@ -99,9 +99,9 @@ func main() {
 		ErrorLog:  slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		TLSConfig: tlsConfig,
 		// Add Idle, Read and Write timeouts to the server.
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		// IdleTimeout:  time.Minute,
+		// ReadTimeout:  5 * time.Second,
+		// WriteTimeout: 10 * time.Second,
 	}
 
 	// Use the Info() method to log the starting server message at Info severity
@@ -112,6 +112,7 @@ func main() {
 	// pass in the paths to the TLS certificate and corresponding private key as
 	// the two parameters.
 	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	//err = srv.ListenAndServeTLS("D:\\CURRENT\\Go_Learn\\snippetbox\\tls\\cert.pem", "D:\\CURRENT\\Go_Learn\\snippetbox\\tls\\key.pem")
 	logger.Error(err.Error())
 	os.Exit(1)
 }

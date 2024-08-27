@@ -42,3 +42,6 @@ snippetbox/tls/
 
 # tmp
 snippetbox/tmp_data.txt
+
+# Config
+snippetbox/.vscode/

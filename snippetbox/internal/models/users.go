@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -111,5 +113,23 @@ func (m *UserModel) Authenticate(email, password string) (interface{}, error) {
 
 // We'll use the Exists method to check if a user exists with a specific ID.
 func (m *UserModel) Exists(id string) (bool, error) {
-	return false, nil
+	// Convert id to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return false, err
+	}
+
+	// Create filter for searching user by ID
+	filter := bson.D{{Key: "_id", Value: objectID}}
+
+	// Execute MongoDB query with limit 1
+	count, err := m.DB.Database("snippetbox").Collection("users").CountDocuments(context.Background(), filter, options.Count().SetLimit(1))
+	if err != nil {
+		return false, err
+	}
+
+	// Check user existing
+	exists := count > 0
+
+	return exists, err
 }
