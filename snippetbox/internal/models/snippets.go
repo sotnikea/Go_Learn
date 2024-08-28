@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -10,6 +9,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+type SnippetModelInterface interface {
+	Insert(title string, content string, expires int) (interface{}, error)
+	Get(id string) (Snippet, error)
+	Latest() ([]Snippet, error)
+}
 
 // Define a Snippet type to hold the data for an individual snippet
 type Snippet struct {
@@ -105,7 +110,6 @@ func (m *SnippetModel) Latest() ([]Snippet, error) {
 	// Execute request
 	cursor, err := m.DB.Database("snippetbox").Collection("snippets").Find(ctx, filter, opts)
 	if err != nil {
-		fmt.Print("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 		return nil, err
 	}
 

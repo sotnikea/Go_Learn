@@ -45,3 +45,6 @@ snippetbox/tmp_data.txt
 
 # Config
 snippetbox/.vscode/
+
+#builds
+snippetbox/tmp_builds
