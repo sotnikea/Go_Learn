@@ -39,11 +39,20 @@ func main() {
 	// writes to the standard out stream and uses the default settings.
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	client, err := openDB(*uri)
+	database, err := openDB_(*uri, "snippetbox")
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+
+	client := database.Client()
+	/*
+		client, err := openDB(*uri)
+		if err != nil {
+			logger.Error(err.Error())
+			os.Exit(1)
+		}
+	*/
 
 	// We also defer a call to db.Close(), so that the connection pool is closed
 	// before the main() function exits.
@@ -75,9 +84,11 @@ func main() {
 	// Initialize a new instance of our application struct, containing the
 	// dependencies
 	app := &application{
-		logger:         logger,
-		snippets:       &models.SnippetModel{DB: client},
-		users:          &models.UserModel{DB: client},
+		logger: logger,
+		//snippets:       &models.SnippetModel{DB: client},
+		snippets: &models.SnippetModel{DB: database},
+		//users:          &models.UserModel{DB: client},
+		users:          &models.UserModel{DB: database},
 		templateCache:  templateCache,
 		formDecoder:    formDecoder,
 		sessionManager: sessionManager,
@@ -131,4 +142,22 @@ func openDB(uri string) (*mongo.Client, error) {
 	}
 
 	return client, nil
+}
+
+func openDB_(uri string, dbName string) (*mongo.Database, error) {
+	clientOptions := options.Client().ApplyURI(uri)
+
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Повертаємо базу даних замість клієнта
+	db := client.Database(dbName)
+	return db, nil
 }

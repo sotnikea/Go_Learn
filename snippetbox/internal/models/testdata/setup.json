@@ -1,0 +1,47 @@
+[
+  {
+    "insertMany": {
+      "documents": [
+        {
+          "_id": "111111111111111111111111" ,
+          "title": "First Snippet",
+          "content": "This is the first test snippet.",
+          "created": "2022-01-01T09:00:00.000Z",
+          "expires": "2022-01-08T09:00:00.000Z"
+        },
+        {
+          "_id": "222222222222222222222222" ,
+          "title": "Second Snippet",
+          "content": "This is the second test snippet.",
+          "created": "2022-01-02T10:00:00.000Z",
+          "expires": "2022-01-09T10:00:00.000Z"
+        }
+      ],
+      "collection": "snippets"
+    }
+  },
+  {
+    "insertOne": {
+      "document": {
+        "_id": "111111111111111111111111" ,
+        "name": "Alice Jones",
+        "email": "alice@example.com",
+        "hashed_password": "$2a$12$NtUj4VkM3KRntReFwgBYHwuf/to.HExTy.es206TNfKGfr6HZGJSMG",
+        "created": "2022-01-01T09:18:24.000Z"
+      },
+      "collection": "users"
+    }
+  },
+  {
+    "createIndexes": {
+      "indexes": [
+        {
+          "key": [{ "key": "email", "value": 1 }],
+          "name": "email_index",
+          "unique": true
+        }
+      ],
+      "collection": "users"
+    }
+  }
+]

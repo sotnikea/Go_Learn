@@ -27,7 +27,8 @@ type Snippet struct {
 
 // Define a SnippetModel type which wraps a mongo.Client connection pool.
 type SnippetModel struct {
-	DB *mongo.Client
+	//DB *mongo.Client
+	DB *mongo.Database
 }
 
 // This will insert a new snippet into the database.
@@ -45,7 +46,7 @@ func (m *SnippetModel) Insert(title string, content string, expires int) (interf
 	}
 
 	// Get collection for insert operation
-	collection := m.DB.Database("snippetbox").Collection("snippets")
+	collection := m.DB.Collection("snippets")
 
 	// Insert document into collection
 	result, err := collection.InsertOne(ctx, doc)
@@ -79,7 +80,7 @@ func (m *SnippetModel) Get(id string) (Snippet, error) {
 	}
 
 	// Execute request for the collection and find one document
-	err = m.DB.Database("snippetbox").Collection("snippets").FindOne(ctx, filter).Decode(&s)
+	err = m.DB.Collection("snippets").FindOne(ctx, filter).Decode(&s)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return Snippet{}, ErrNoRecord
@@ -108,7 +109,7 @@ func (m *SnippetModel) Latest() ([]Snippet, error) {
 	opts := options.Find().SetSort(bson.D{{Key: "created", Value: -1}}).SetLimit(10)
 
 	// Execute request
-	cursor, err := m.DB.Database("snippetbox").Collection("snippets").Find(ctx, filter, opts)
+	cursor, err := m.DB.Collection("snippets").Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}

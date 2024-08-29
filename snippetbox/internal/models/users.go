@@ -31,7 +31,8 @@ type User struct {
 
 // Define a new UserModel struct which wraps a database connection pool.
 type UserModel struct {
-	DB *mongo.Client
+	//DB *mongo.Client
+	DB *mongo.Database
 }
 
 // We'll use the Insert method to add a new record to the "users" table.
@@ -55,7 +56,7 @@ func (m *UserModel) Insert(name, email, password string) error {
 	}
 
 	// Get collection for insert operation
-	collection := m.DB.Database("snippetbox").Collection("users")
+	collection := m.DB.Collection("users")
 
 	// Insert document into collection
 	_, err = collection.InsertOne(context.Background(), doc)
@@ -95,7 +96,7 @@ func (m *UserModel) Authenticate(email, password string) (interface{}, error) {
 	filter := bson.D{{Key: "email", Value: email}}
 
 	// Execute request for the collection and find one document
-	err := m.DB.Database("snippetbox").Collection("users").FindOne(context.Background(), filter).Decode(&result)
+	err := m.DB.Collection("users").FindOne(context.Background(), filter).Decode(&result)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return 0, ErrInvalidCredentials
@@ -119,6 +120,11 @@ func (m *UserModel) Authenticate(email, password string) (interface{}, error) {
 
 // We'll use the Exists method to check if a user exists with a specific ID.
 func (m *UserModel) Exists(id string) (bool, error) {
+	// Check if the id is empty
+	if id == "" {
+		return false, nil
+	}
+
 	// Convert id to ObjectID
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -129,7 +135,7 @@ func (m *UserModel) Exists(id string) (bool, error) {
 	filter := bson.D{{Key: "_id", Value: objectID}}
 
 	// Execute MongoDB query with limit 1
-	count, err := m.DB.Database("snippetbox").Collection("users").CountDocuments(context.Background(), filter, options.Count().SetLimit(1))
+	count, err := m.DB.Collection("users").CountDocuments(context.Background(), filter, options.Count().SetLimit(1))
 	if err != nil {
 		return false, err
 	}
