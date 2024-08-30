@@ -10,8 +10,6 @@ import (
 
 func commonHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Note: This is split across multiple lines for readability. You don't
-		// need to do this in your own code.
 		w.Header().Set("Content-Security-Policy",
 			"default-src 'self'; style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com")
 		w.Header().Set("Referrer-Policy", "origin-when-cross-origin")
@@ -79,8 +77,7 @@ func (app *application) requireAuthentication(next http.Handler) http.Handler {
 	})
 }
 
-// Create a NoSurf middleware function which uses a customized CSRF cookie with
-// the Secure, Path and HttpOnly attributes set.
+// Uses a customized CSRF cookie with the Secure, Path and HttpOnly attributes set
 func noSurf(next http.Handler) http.Handler {
 	csrfHandler := nosurf.New(next)
 	csrfHandler.SetBaseCookie(http.Cookie{
@@ -96,15 +93,14 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		// Retrieve the authenticatedUserID value from the session using the
 		// GetInt() method. This will return the zero value for an int (0) if no
 		// "authenticatedUserID" value is in the session -- in which case we
-		// call the next handler in the chain as normal and return.
+		// call the next handler in the chain as normal and return
 		id := app.sessionManager.GetString(r.Context(), "authenticatedUserID")
 		if id == "" {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		// Otherwise, we check to see if a user with that ID exists in our
-		// database.
+		// Check to see if a user with that ID exists in our database
 		exists, err := app.users.Exists(id)
 		if err != nil {
 			app.serverError(w, r, err)

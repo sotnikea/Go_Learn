@@ -29,9 +29,8 @@ type User struct {
 	Created        time.Time
 }
 
-// Define a new UserModel struct which wraps a database connection pool.
+// Define a new UserModel struct which wraps a database connection pool
 type UserModel struct {
-	//DB *mongo.Client
 	DB *mongo.Database
 }
 

@@ -25,9 +25,8 @@ type Snippet struct {
 	Expires time.Time
 }
 
-// Define a SnippetModel type which wraps a mongo.Client connection pool.
+// Define a SnippetModel type which wraps a mongo.Client connection pool
 type SnippetModel struct {
-	//DB *mongo.Client
 	DB *mongo.Database
 }
 
