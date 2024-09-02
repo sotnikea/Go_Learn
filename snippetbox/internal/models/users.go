@@ -19,8 +19,7 @@ type UserModelInterface interface {
 	Exists(id string) (bool, error)
 }
 
-// Define a new User struct. Notice how the field names and types align
-// with the columns in the database "users" table?
+// Define a new User struct
 type User struct {
 	ID             string
 	Name           string
@@ -34,17 +33,13 @@ type UserModel struct {
 	DB *mongo.Database
 }
 
-// We'll use the Insert method to add a new record to the "users" table.
+// Add a new record to the "users" table
 func (m *UserModel) Insert(name, email, password string) error {
-	// Create a bcrypt hash of the plain-text password.
+	// Create a bcrypt hash of the plain-text password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return err
 	}
-
-	// Create context for operation
-	//ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	//defer cancel()
 
 	// Prepare document for insert
 	doc := bson.D{
@@ -65,7 +60,7 @@ func (m *UserModel) Insert(name, email, password string) error {
 		// error will be assigned to the mongoWriteException variable. We can then check
 		// whether or not the error relates to our users_uc_email key by
 		// checking if the error code equals 11000 and the contents of the error
-		// message string. If it does, we return an ErrDuplicateEmail error.
+		// message string. If it does, we return an ErrDuplicateEmail error
 		var mongoWriteException mongo.WriteException
 		if errors.As(err, &mongoWriteException) {
 			for _, we := range mongoWriteException.WriteErrors {
@@ -80,12 +75,11 @@ func (m *UserModel) Insert(name, email, password string) error {
 	return nil
 }
 
-// We'll use the Authenticate method to verify whether a user exists with
-// the provided email address and password. This will return the relevant
-// user ID if they do.
+// Verify whether a user exists with the provided email address and password. This will return the relevant
+// user ID if they do
 func (m *UserModel) Authenticate(email, password string) (interface{}, error) {
 	// Retrieve the id and hashed password associated with the given email. If
-	// no matching email exists we return the ErrInvalidCredentials error.
+	// no matching email exists we return the ErrInvalidCredentials error
 	var result struct {
 		ID             interface{} `bson:"_id"`
 		HashedPassword []byte      `bson:"hashed_password"`
@@ -104,7 +98,7 @@ func (m *UserModel) Authenticate(email, password string) (interface{}, error) {
 	}
 
 	// Check whether the hashed password and plain-text password provided match.
-	// If they don't, we return the ErrInvalidCredentials error.
+	// If they don't, we return the ErrInvalidCredentials error
 	err = bcrypt.CompareHashAndPassword(result.HashedPassword, []byte(password))
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
@@ -113,11 +107,11 @@ func (m *UserModel) Authenticate(email, password string) (interface{}, error) {
 		return 0, err
 	}
 
-	// Otherwise, the password is correct. Return the user ID.
+	// Otherwise, the password is correct. Return the user ID
 	return result.ID, nil
 }
 
-// We'll use the Exists method to check if a user exists with a specific ID.
+// Check if a user exists with a specific ID
 func (m *UserModel) Exists(id string) (bool, error) {
 	// Check if the id is empty
 	if id == "" {

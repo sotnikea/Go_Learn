@@ -58,7 +58,7 @@ func (m *SnippetModel) Insert(title string, content string, expires int) (interf
 
 }
 
-// This will return a specific snippet based on its id.
+// This will return a specific snippet based on its id
 func (m *SnippetModel) Get(id string) (Snippet, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

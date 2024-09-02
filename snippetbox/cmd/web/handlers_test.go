@@ -83,13 +83,13 @@ func TestSnippetView(t *testing.T) {
 
 func TestUserSignup(t *testing.T) {
 	// Create the application struct containing our mocked dependencies and set
-	// up the test server for running an end-to-end test.
+	// up the test server for running an end-to-end test
 	app := newTestApplication(t)
 	ts := newTestServer(t, app.routes())
 	defer ts.Close()
 
 	// Make a GET /user/signup request and then extract the CSRF token from the
-	// response body.
+	// response body
 	_, _, body := ts.get(t, "/user/signup")
 	validCSRFToken := extractCSRFToken(t, body)
 
